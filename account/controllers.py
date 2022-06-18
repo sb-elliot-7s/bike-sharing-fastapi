@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, status
 
-from .schemas import CreateAccountSchema, AccountSchema, Token
+from .schemas import AccountSchema, Token, CreateAccountSchema
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from .deps import get_account_collection, get_account_service
+from .deps import get_account_service
 from .services import AccountService
 
 account_router = APIRouter(prefix='/account', tags=['account'])
