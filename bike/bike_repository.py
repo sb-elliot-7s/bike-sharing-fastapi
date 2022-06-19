@@ -4,6 +4,7 @@ from bson import ObjectId
 from fastapi import HTTPException, status
 from .constants import response_exceptions
 from .interfaces.bike_repository_interface import BikeRepositoryInterface
+from .schemas import CreateBikeSchema
 
 
 class BikeRepository(BikeRepositoryInterface):
@@ -48,21 +49,45 @@ class BikeRepository(BikeRepositoryInterface):
             'created': datetime.datetime.utcnow()
         }
 
-    async def create_bike(self, bike_serial: str, station_id: str, brand: str, model: str,
-                          color: str, rent_price: float, bike_manufacturer: Optional[str] = None,
-                          description: Optional[str] = None):
-        document = await self._prepare_document(bike_manufacturer, bike_serial, brand, color, description,
-                                                model, rent_price, station_id)
-        result = await self._bike_collection.insert_one(document=document)
-        bike = await self._get_detail_bike(bike_id=result.inserted_id)
+    async def _check_available_count_of_bikes(self, station_id: str):
         station = await self._station_collection.find_one({'_id': ObjectId(station_id)})
-        if not station['available_count_of_bicycles'] > 0:
+        station_available_count_of_bikes = station['available_count_of_bicycles']
+        if not station_available_count_of_bikes > 0:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f'There are {station["maximum_number_of_bicycles"]} '
                                        f'bike places available at the station. Everyone is busy')
-        updated_data = {
-            'filter': {'_id': ObjectId(station_id)},
-            'update': {'$inc': {'available_count_of_bicycles': -1}, '$push': {'bicycles': bike}}
-        }
+        return station, station_available_count_of_bikes
+
+    @staticmethod
+    def _get_updated_data(station_id: str, _updated_filter: dict):
+        return {'filter': {'_id': ObjectId(station_id)}, 'update': _updated_filter}
+
+    async def create_bike(self, bike_serial: str, station_id: str, brand: str, model: str,
+                          color: str, rent_price: float, bike_manufacturer: Optional[str] = None,
+                          description: Optional[str] = None):
+        document = await self._prepare_document(bike_manufacturer=bike_manufacturer, bike_serial=bike_serial,
+                                                brand=brand, color=color, description=description,
+                                                model=model, rent_price=rent_price, station_id=station_id)
+        result = await self._bike_collection.insert_one(document=document)
+        bike = await self._get_detail_bike(bike_id=result.inserted_id)
+        _, available_count_of_bikes = await self._check_available_count_of_bikes(station_id=station_id)
+        _filter = {'$inc': {'available_count_of_bicycles': -1}, '$push': {'bicycles': bike}}
+        updated_data = self._get_updated_data(station_id=station_id, _updated_filter=_filter)
         await self._station_collection.update_one(**updated_data)
         return bike
+
+    async def add_many_bikes_for_station(self, station_id: str, _bikes: list[CreateBikeSchema]):
+        result = await self._bike_collection.insert_many([doc.dict(exclude_none=True) for doc in _bikes])
+        station, available_count_of_bikes = await self._check_available_count_of_bikes(station_id)
+        bikes = [await self._get_detail_bike(bike_id=bike_id) for bike_id in result.inserted_ids]
+        count_of_bikes = len(bikes)
+        cnt = available_count_of_bikes if count_of_bikes > available_count_of_bikes else count_of_bikes
+        _filter = {'$inc': {'available_count_of_bicycles': -cnt},
+                   '$push': {'bicycles': {'$each': bikes[:available_count_of_bikes]}}}
+        updated_data = self._get_updated_data(station_id=station_id, _updated_filter=_filter)
+        await self._station_collection.update_one(**updated_data)
+        return {
+            'available_count': available_count_of_bikes,
+            'added': cnt,
+            'not_added': count_of_bikes - cnt
+        }

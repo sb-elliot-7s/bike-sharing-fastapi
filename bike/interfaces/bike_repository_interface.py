@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
+from ..schemas import CreateBikeSchema
 
 
 class BikeRepositoryInterface(ABC):
@@ -19,3 +20,7 @@ class BikeRepositoryInterface(ABC):
 
     @abstractmethod
     async def delete_bike(self, bike_id: str): pass
+
+    @abstractmethod
+    async def add_many_bikes_for_station(self, station_id: str, _bikes: list[CreateBikeSchema]):
+        pass
