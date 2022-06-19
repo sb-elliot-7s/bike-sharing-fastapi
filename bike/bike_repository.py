@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import HTTPException, status
 from .constants import response_exceptions
 from .interfaces.bike_repository_interface import BikeRepositoryInterface
-from .schemas import CreateBikeSchema
+from .schemas import CreateBikeSchema, BikeSchema
 
 
 class BikeRepository(BikeRepositoryInterface):
@@ -70,24 +70,37 @@ class BikeRepository(BikeRepositoryInterface):
                                                 model=model, rent_price=rent_price, station_id=station_id)
         result = await self._bike_collection.insert_one(document=document)
         bike = await self._get_detail_bike(bike_id=result.inserted_id)
-        _, available_count_of_bikes = await self._check_available_count_of_bikes(station_id=station_id)
-        _filter = {'$inc': {'available_count_of_bicycles': -1}, '$push': {'bicycles': bike}}
-        updated_data = self._get_updated_data(station_id=station_id, _updated_filter=_filter)
-        await self._station_collection.update_one(**updated_data)
-        return bike
+        station = await self._station_collection.find_one({'_id': ObjectId(station_id)})
+        if len(station['bicycles']) < station['maximum_number_of_bicycles']:
+            _filter = {'$inc': {'available_count_of_bicycles': 1}, '$push': {'bicycles': bike}}
+            updated_data = self._get_updated_data(station_id=station_id, _updated_filter=_filter)
+            await self._station_collection.update_one(**updated_data)
+            return bike
+        return False
 
     async def add_many_bikes_for_station(self, station_id: str, _bikes: list[CreateBikeSchema]):
-        result = await self._bike_collection.insert_many([doc.dict(exclude_none=True) for doc in _bikes])
-        station, available_count_of_bikes = await self._check_available_count_of_bikes(station_id)
+        data = [dict(doc.dict(exclude_none=True), created=datetime.datetime.utcnow()) for doc in _bikes]
+        result = await self._bike_collection.insert_many(data)
+        station = await self._station_collection.find_one({'_id': ObjectId(station_id)})
         bikes = [await self._get_detail_bike(bike_id=bike_id) for bike_id in result.inserted_ids]
-        count_of_bikes = len(bikes)
-        cnt = available_count_of_bikes if count_of_bikes > available_count_of_bikes else count_of_bikes
-        _filter = {'$inc': {'available_count_of_bicycles': -cnt},
-                   '$push': {'bicycles': {'$each': bikes[:available_count_of_bikes]}}}
-        updated_data = self._get_updated_data(station_id=station_id, _updated_filter=_filter)
-        await self._station_collection.update_one(**updated_data)
+
+        add_count_of_bikes = len(bikes)
+        max_count = station['maximum_number_of_bicycles']
+        available_count_of_bicycles = station['available_count_of_bicycles']
+        dif = (max_count - available_count_of_bicycles)
+
+        cnt = add_count_of_bikes if add_count_of_bikes < dif else dif
+
+        if available_count_of_bicycles < max_count:
+            updated_data = self._get_updated_data(
+                station_id=station_id,
+                _updated_filter={'$inc': {'available_count_of_bicycles': cnt},
+                                 '$push': {'bicycles': {'$each': bikes[:cnt]}}})
+            await self._station_collection.update_one(**updated_data)
         return {
-            'available_count': available_count_of_bikes,
+            'max_count': max_count,
+            'available_count': available_count_of_bicycles,
             'added': cnt,
-            'not_added': count_of_bikes - cnt
+            'not added': add_count_of_bikes - cnt,
+            'bikes_added': [BikeSchema(**bike) for bike in bikes[:cnt]]
         }

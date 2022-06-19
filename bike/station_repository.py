@@ -20,7 +20,7 @@ class StationRepository(StationRepositoryInterface):
             'station_name': station_name,
             'maximum_number_of_bicycles': maximum_number_of_bicycles,
             'address': address,
-            'available_count_of_bicycles': maximum_number_of_bicycles,
+            'available_count_of_bicycles': 0,
             'bicycles': [],
             'time_created': datetime.datetime.utcnow(),
         }

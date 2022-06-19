@@ -1,3 +1,5 @@
+from typing import Union
+
 from fastapi import status
 from .schemas import BikeSchema, StationSchema
 
@@ -15,7 +17,7 @@ response_exceptions = {
 bike_response_data = {
     'create': {
         'status_code': status.HTTP_201_CREATED,
-        'response_model': BikeSchema,
+        'response_model': Union[BikeSchema, dict],
         'response_model_by_alias': False
     },
     'detail': {

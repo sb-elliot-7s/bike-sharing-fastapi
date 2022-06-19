@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, responses
+from fastapi import APIRouter, Depends, HTTPException, responses, status
 from .bike_service import BikeService
 from .schemas import CreateBikeSchema, UpdateBikeSchema
 from .deps import get_bike_service
@@ -13,7 +13,10 @@ bike_router = APIRouter(prefix='/bike', tags=['bike'])
 @bike_router.post('/', **bike_response_data.get('create'))
 async def create_bike(bike_data: CreateBikeSchema, services=Depends(get_bike_service),
                       admin_user=Depends(Permission(token_service=TokenService()).get_admin_user)):
-    return await BikeService(**services).create_bike(bike_data=bike_data)
+    if not (result := await BikeService(**services).create_bike(bike_data=bike_data)):
+        return responses.JSONResponse(content={'detail': 'Failed to add bike to station'},
+                                      status_code=status.HTTP_400_BAD_REQUEST)
+    return result
 
 
 @bike_router.get('/{bike_id}', **bike_response_data.get('detail'))
