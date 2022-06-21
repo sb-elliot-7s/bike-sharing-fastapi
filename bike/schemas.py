@@ -5,11 +5,14 @@ from pydantic import BaseModel, Field
 from custom_objectID import ObjID
 
 
-class Address(BaseModel):
+class CreateAddressSchema(BaseModel):
     country: Optional[str]
     city: Optional[str]
     street: Optional[str]
     house: Optional[str]
+
+
+class AddressSchema(CreateAddressSchema):
     latitude: Optional[float]
     longitude: Optional[float]
 
@@ -42,13 +45,13 @@ class BikeSchema(CreateBikeSchema):
 class CreateStationSchema(BaseModel):
     station_name: str
     maximum_number_of_bicycles: int = 1
-    address: Address
+    address: CreateAddressSchema
 
 
 class UpdateStationSchema(BaseModel):
     station_name: Optional[str]
     maximum_number_of_bicycles: Optional[int]
-    address: Optional[Address]
+    address: Optional[CreateAddressSchema]
 
 
 class StationSchema(CreateStationSchema):
@@ -57,6 +60,7 @@ class StationSchema(CreateStationSchema):
     available_count_of_bicycles: int
     time_created: datetime
     time_updated: Optional[datetime]
+    address: AddressSchema
 
     class Config:
         json_encoders = {

@@ -4,6 +4,7 @@ from bson import ObjectId
 from fastapi import HTTPException, status
 
 from .interfaces.station_repository_interface import StationRepositoryInterface
+from geo_service.geo_service import GeoService
 
 
 class StationRepository(StationRepositoryInterface):
@@ -15,11 +16,17 @@ class StationRepository(StationRepositoryInterface):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Station not found')
         return station
 
+    @staticmethod
+    async def _get_address_lat_lng(country: str, city: str, street: str, house: str):
+        return await GeoService() \
+            .get_longitude_and_latitude(country=country, city=city, street=street, house=house)
+
     async def create_station(self, station_name: str, maximum_number_of_bicycles: int, address: dict):
+        lat, lng = await self._get_address_lat_lng(**address)
         document = {
             'station_name': station_name,
             'maximum_number_of_bicycles': maximum_number_of_bicycles,
-            'address': address,
+            'address': {**address, 'latitude': lat, 'longitude': lng},
             'available_count_of_bicycles': 0,
             'bicycles': [],
             'time_created': datetime.datetime.utcnow(),
