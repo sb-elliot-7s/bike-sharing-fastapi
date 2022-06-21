@@ -3,9 +3,10 @@ from typing import Optional
 import aiohttp
 from configs import get_configs
 from .schemas import WeatherSchema
+from .interfaces.weather_network_service_interface import WeatherNetworkServiceInterface
 
 
-class WeatherNetworkService:
+class WeatherNetworkService(WeatherNetworkServiceInterface):
 
     @staticmethod
     async def fetch_data(params: dict) -> Optional[WeatherSchema]:
