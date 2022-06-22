@@ -2,7 +2,7 @@ from bson import ObjectId
 from .schemas import PaymentStatus
 from .interfaces.trip_repository_interface import TripRepositoryInterface
 
-from weather_service.network_service import WeatherNetworkService
+from weather_service.weather_network_service import WeatherNetworkService
 
 from database import client
 from .utils import PrepareDocumentService, CalculatesService, CheckWeatherService
@@ -55,6 +55,9 @@ class TripRepository(TripRepositoryInterface):
                         '$push': {'bicycles': bike}}
                 )
                 weather = await CheckWeatherService().data(station['address']['city'], weather_service)
+
+                # payment service
+
                 doc = await PrepareDocumentService().prepare_finish_trip_document(
                     station_id=station_id, end_time=end_time, points=points, travel_time=travel_time,
                     weather=weather, total_amount=total_amount)

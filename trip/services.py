@@ -1,5 +1,5 @@
 from trip.interfaces.trip_repository_interface import TripRepositoryInterface
-from weather_service.network_service import WeatherNetworkService
+from weather_service.weather_network_service import WeatherNetworkService
 
 
 class TripService:

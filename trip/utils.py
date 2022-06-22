@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 
 from trip.schemas import PaymentStatus
 from configs import get_configs
-from weather_service.network_service import WeatherNetworkService
+from weather_service.weather_network_service import WeatherNetworkService
 
 
 class PrepareDocumentService:

@@ -5,7 +5,7 @@ from .repositories import TripRepository
 from bike.deps import get_bike_collection, get_station_collection
 from permissions import Permission
 from account.token_service import TokenService
-from weather_service.network_service import WeatherNetworkService
+from weather_service.weather_network_service import WeatherNetworkService
 from .schemas import TripSchema
 
 trip_router = APIRouter(prefix='/trip', tags=['trip'])
