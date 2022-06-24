@@ -1,13 +1,14 @@
 import uuid
 from typing import Optional
 
-from yookassa.domain.response import PaymentResponse
+from yookassa.domain.response import PaymentResponse, PaymentListResponse
 
 from .interfaces.payment_service_interface import PaymentServiceInterface
 from yookassa import Payment, Configuration
 from configs import get_configs
 from .schemas import PaymentDataSchema
 from .constants import PaymentStatus
+from .create_payment_object import CreatePaymentObject
 
 
 class PaymentService(PaymentServiceInterface):
@@ -18,37 +19,8 @@ class PaymentService(PaymentServiceInterface):
     async def create_payment(self, email: Optional[str], phone: Optional[int],
                              payment_data: PaymentDataSchema):
         try:
-            payment_object = {
-                'amount': {
-                    'value': str(payment_data.amount),
-                    'currency': payment_data.currency.upper()
-                },
-                'payment_method_data': {
-                    "type": payment_data.payment_method_data_type.value
-                },
-                'receipt': {
-                    'customer': {
-                        'full_name': payment_data.user_fullname,
-                        'email': email,
-                        'phone': str(phone)
-                    },
-                    'items': [
-                        {
-                            'description': payment_data.trip_description,
-                            'quantity': '1.00',
-                            'amount': {
-                                'value': str(payment_data.amount),
-                                'currency': payment_data.currency.upper()
-                            }
-                        }
-                    ]
-                },
-                'confirmation': {
-                    'type': 'redirect',
-                    'return_url': "https://www.merchant-website.com/return_url"
-                },
-                'description': payment_data.description_payment
-            }
+            payment_object = await CreatePaymentObject() \
+                .get_payment_object(email=email, phone=phone, payment_data=payment_data)
             payment: PaymentResponse = Payment.create(payment_object, str(uuid.uuid4()))
             return payment
         except ...:
@@ -65,7 +37,7 @@ class PaymentService(PaymentServiceInterface):
 
     @staticmethod
     async def cancel_payment(payment_id: str):
-        payment = Payment \
+        payment: PaymentResponse = Payment \
             .cancel(payment_id=payment_id, idempotency_key=str(uuid.uuid4()))
 
     @staticmethod
@@ -75,8 +47,8 @@ class PaymentService(PaymentServiceInterface):
     @staticmethod
     async def get_payments_by_filter(_filter: dict):
         try:
-            res = Payment.list(params=_filter)
+            payments: PaymentListResponse = Payment.list(params=_filter)
         except Exception as e:
             """handle error"""
             raise
-        return res
+        return payments
