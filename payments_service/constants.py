@@ -12,3 +12,10 @@ class PaymentMethodDataType(Enum):
     SBP = 'sbp'
     CASH = 'cash'
     INSTALLMENTS = 'installments'
+
+
+class PaymentStatus(Enum):
+    PENDING = 'pending'
+    WAITING_FOR_CAPTURE = 'waiting_for_capture'
+    SUCCEEDED = 'succeeded'
+    CANCELED = 'canceled'
