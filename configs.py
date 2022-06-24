@@ -9,6 +9,9 @@ class Configs(BaseSettings):
     weather_url: str
     weather_api_key: str
 
+    you_kassa_account_id: str
+    you_kassa_secret_key: str
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
