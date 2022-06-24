@@ -55,9 +55,6 @@ class TripRepository(TripRepositoryInterface):
                         '$push': {'bicycles': bike}}
                 )
                 weather = await CheckWeatherService().data(station['address']['city'], weather_service)
-
-                # payment service
-
                 doc = await PrepareDocumentService().prepare_finish_trip_document(
                     station_id=station_id, end_time=end_time, points=points, travel_time=travel_time,
                     weather=weather, total_amount=total_amount)
