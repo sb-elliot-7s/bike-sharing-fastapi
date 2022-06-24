@@ -64,3 +64,8 @@ class FilterPaymentDataSchema(BaseModel):
             captured_at_lte=captured_at_lte,
             captured_at_lt=captured_at_lt
         )
+
+
+class AmountSchema(BaseModel):
+    amount: float
+    currency: str
