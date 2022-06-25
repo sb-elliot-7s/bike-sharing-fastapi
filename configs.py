@@ -11,6 +11,7 @@ class Configs(BaseSettings):
 
     you_kassa_account_id: str
     you_kassa_secret_key: str
+    return_url: str
 
     class Config:
         env_file = '.env'
