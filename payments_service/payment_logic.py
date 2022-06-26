@@ -1,5 +1,4 @@
 from .interfaces.payment_service_interface import PaymentServiceInterface
-from typing import Optional
 from .schemas import PaymentDataSchema
 
 
@@ -7,10 +6,10 @@ class PaymentLogic:
     def __init__(self, payment_service: PaymentServiceInterface):
         self._payment_service = payment_service
 
-    async def create_payment(self, email: Optional[str],
-                             phone: Optional[int], payment_data: PaymentDataSchema):
+    async def create_payment(self, payment_collection, user, payment_data: PaymentDataSchema):
         return await self._payment_service \
-            .create_payment(email=email, phone=phone, payment_data=payment_data)
+            .create_payment(user=user, payment_data=payment_data,
+                            payment_collection=payment_collection)
 
     async def confirm_payment(self, payment_id: str):
         return await self._payment_service.confirm_payment(payment_id=payment_id)

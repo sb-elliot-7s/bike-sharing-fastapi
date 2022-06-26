@@ -16,6 +16,6 @@ class RefundService(RefundServiceInterface):
         }
         refund = Refund.create(refund_object, idempotency_key=str(uuid.uuid4()))
         if refund.status != PaymentStatus.SUCCEEDED.value:
-            print('error')
+            """handle error"""
             return
         return refund

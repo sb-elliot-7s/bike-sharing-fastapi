@@ -4,6 +4,7 @@ from .schemas import PaymentDataSchema, FilterPaymentDataSchema
 from permissions import Permission
 from account.token_service import TokenService
 from .payment_logic import PaymentLogic
+from .deps import get_payment_collection
 
 payment_router = APIRouter(prefix='/payment', tags=['payment'])
 
@@ -11,12 +12,13 @@ payment_router = APIRouter(prefix='/payment', tags=['payment'])
 @payment_router.post('/', status_code=status.HTTP_201_CREATED)
 async def create_payment(
         payment_data: PaymentDataSchema,
-        user_account=Depends(Permission(token_service=TokenService()))
+        user_account=Depends(Permission(token_service=TokenService())),
+        payment_collection=Depends(get_payment_collection)
 ):
     return await PaymentLogic(payment_service=PaymentService()).create_payment(
-        phone=user_account.phone,
-        email=user_account.email,
-        payment_data=payment_data
+        user=user_account,
+        payment_data=payment_data,
+        payment_collection=payment_collection
     )
 
 

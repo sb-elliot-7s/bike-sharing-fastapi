@@ -1,6 +1,5 @@
 import uuid
-from typing import Optional
-
+from time import time
 from yookassa.domain.response import PaymentResponse, PaymentListResponse
 
 from .interfaces.payment_service_interface import PaymentServiceInterface
@@ -16,15 +15,22 @@ class PaymentService(PaymentServiceInterface):
         Configuration.account_id = get_configs().you_kassa_account_id
         Configuration.secret_key = get_configs().you_kassa_secret_key
 
-    async def create_payment(self, email: Optional[str], phone: Optional[int],
-                             payment_data: PaymentDataSchema):
-        try:
-            payment_object = await CreatePaymentObject() \
-                .get_payment_object(email=email, phone=phone, payment_data=payment_data)
-            payment: PaymentResponse = Payment.create(payment_object, str(uuid.uuid4()))
-            return payment
-        except ...:
-            pass
+    async def create_payment(self, payment_collection, user, payment_data: PaymentDataSchema):
+        payment_object = await CreatePaymentObject() \
+            .get_payment_object(email=user.email, phone=user.phone, payment_data=payment_data)
+        payment: PaymentResponse = Payment.create(payment_object, str(uuid.uuid4()))
+        document = {
+            'user_id': user.id,
+            'youkassa_payment_id': payment.id,
+            'status_payment': payment.status,
+            'money': {
+                'amount': payment_data.amount,
+                'currency': payment_data.currency
+            },
+            'timestamp': time(),
+        }
+        await payment_collection.insert_one(document=document)
+        return payment
 
     @staticmethod
     async def confirm_payment(payment_id: str):
