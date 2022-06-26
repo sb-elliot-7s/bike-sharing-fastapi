@@ -2,6 +2,8 @@ import datetime
 from typing import Optional
 from bson import ObjectId
 from fastapi import HTTPException, status
+
+from .bike_utils import BikeUtils
 from .constants import response_exceptions
 from .interfaces.bike_repository_interface import BikeRepositoryInterface
 from .schemas import CreateBikeSchema, BikeSchema
@@ -22,32 +24,13 @@ class BikeRepository(BikeRepositoryInterface):
         return await self._get_detail_bike(bike_id=bike_id)
 
     async def update_info_bike(self, bike_id: str, update_bike_data: dict):
-        attrs = {
-            'filter': {'_id': ObjectId(bike_id)},
-            'update': {'$set': update_bike_data},
-            'return_document': True
-        }
-        return await self._bike_collection.find_one_and_update(**attrs)
+        data = await BikeUtils().get_update_info_bike(bike_data=update_bike_data, bike_id=bike_id)
+        return await self._bike_collection.find_one_and_update(**data)
 
     async def delete_bike(self, bike_id: str):
         bike = await self._get_detail_bike(bike_id=bike_id)
         result = await self._bike_collection.delete_one(filter={'_id': ObjectId(bike['_id'])})
         return False if not result.deleted_count else True
-
-    @staticmethod
-    async def _prepare_document(bike_manufacturer, bike_serial, brand, color, description, model,
-                                rent_price, station_id):
-        return {
-            'bike_serial': bike_serial,
-            'station_id': station_id,
-            'brand': brand,
-            'model': model,
-            'color': color,
-            'bike_manufacturer': bike_manufacturer,
-            'description': description,
-            'rent_price': rent_price,
-            'created': datetime.datetime.utcnow()
-        }
 
     async def _check_available_count_of_bikes(self, station_id: str):
         station = await self._station_collection.find_one({'_id': ObjectId(station_id)})
@@ -65,9 +48,10 @@ class BikeRepository(BikeRepositoryInterface):
     async def create_bike(self, bike_serial: str, station_id: str, brand: str, model: str,
                           color: str, rent_price: float, bike_manufacturer: Optional[str] = None,
                           description: Optional[str] = None):
-        document = await self._prepare_document(bike_manufacturer=bike_manufacturer, bike_serial=bike_serial,
-                                                brand=brand, color=color, description=description,
-                                                model=model, rent_price=rent_price, station_id=station_id)
+        document = await BikeUtils() \
+            .prepare_document(bike_manufacturer=bike_manufacturer, bike_serial=bike_serial, brand=brand,
+                              color=color, description=description, model=model, rent_price=rent_price,
+                              station_id=station_id)
         result = await self._bike_collection.insert_one(document=document)
         bike = await self._get_detail_bike(bike_id=result.inserted_id)
         station = await self._station_collection.find_one({'_id': ObjectId(station_id)})
@@ -83,14 +67,11 @@ class BikeRepository(BikeRepositoryInterface):
         result = await self._bike_collection.insert_many(data)
         station = await self._station_collection.find_one({'_id': ObjectId(station_id)})
         bikes = [await self._get_detail_bike(bike_id=bike_id) for bike_id in result.inserted_ids]
-
         add_count_of_bikes = len(bikes)
         max_count = station['maximum_number_of_bicycles']
         available_count_of_bicycles = station['available_count_of_bicycles']
         dif = (max_count - available_count_of_bicycles)
-
         cnt = add_count_of_bikes if add_count_of_bikes < dif else dif
-
         if available_count_of_bicycles < max_count:
             updated_data = self._get_updated_data(
                 station_id=station_id,
