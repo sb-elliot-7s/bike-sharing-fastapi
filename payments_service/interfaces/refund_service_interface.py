@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class RefundServiceInterface(ABC):
-    @staticmethod
     @abstractmethod
-    async def refund_money(payment_id: str, amount: float, currency: str):
+    async def refund_money(self, user_id: str, payment_id: str, amount: float,
+                           currency: str, payment_collection):
         pass

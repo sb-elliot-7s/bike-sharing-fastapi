@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
-
 from ..schemas import PaymentDataSchema
 
 
