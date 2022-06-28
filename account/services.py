@@ -40,7 +40,7 @@ class AccountService:
     async def registration(self, user_data: CreateAccountSchema):
         if await self._repository.get_user_by(username=user_data.username):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail='User with this email_agent exists')
+                                detail='User with this username exists')
         hashed_password = await self._password_service.hashed_password(plain_password=user_data.password)
         data_without_password = user_data.dict(exclude={'password'})
         return await self._repository.save_user(password=hashed_password, **data_without_password)
