@@ -6,11 +6,7 @@ from ..schemas import CreateBikeSchema
 class BikeRepositoryInterface(ABC):
 
     @abstractmethod
-    async def create_bike(self, bike_serial: str, station_id: str, brand: str,
-                          model: str, color: str, rent_price: float,
-                          bike_manufacturer: Optional[str] = None,
-                          description: Optional[str] = None):
-        pass
+    async def create_bike(self, bike_data: CreateBikeSchema): pass
 
     @abstractmethod
     async def get_bike(self, bike_id: str): pass

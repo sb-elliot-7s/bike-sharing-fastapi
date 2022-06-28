@@ -11,6 +11,10 @@ response_exceptions = {
     'bike_not_found': {
         'status_code': status.HTTP_404_NOT_FOUND,
         'detail': 'Bike not found'
+    },
+    'station_not_found': {
+        'status_code': status.HTTP_404_NOT_FOUND,
+        'detail': 'Station not found'
     }
 }
 
