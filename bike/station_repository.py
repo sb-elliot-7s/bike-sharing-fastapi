@@ -27,11 +27,14 @@ class StationRepository(StationRepositoryInterface):
             .get_longitude_and_latitude(country=country, city=city,
                                         street=street, house=house)
 
-    async def create_station(self, station_name: str,
-                             maximum_number_of_bicycles: int, address: dict):
+    async def create_station(
+            self, user, station_name: str,
+            maximum_number_of_bicycles: int, address: dict
+    ):
         lat, lng = await self._get_address_lat_lng(**address)
         document = {
             'station_name': station_name,
+            'account_id': user.id,
             'maximum_number_of_bicycles': maximum_number_of_bicycles,
             'address': {**address, 'latitude': lat, 'longitude': lng},
             'available_count_of_bicycles': 0,
@@ -48,7 +51,9 @@ class StationRepository(StationRepositoryInterface):
     async def get_detail_station(self, station_id: str):
         return await self._get_station(station_id=station_id)
 
-    async def update_station_info(self, station_id: str, station_data: dict):
+    async def update_station_info(
+            self, user, station_id: str, station_data: dict
+    ):
         if max_num := station_data.get('maximum_number_of_bicycles'):
             station_data.update({'available_count_of_bicycles': max_num})
         station_data.update({'time_updated': datetime.datetime.utcnow()})
@@ -58,14 +63,23 @@ class StationRepository(StationRepositoryInterface):
             station_data.update(
                 {f'address.{key}': value for key, value in address.items()})
         attrs = {
-            'filter': {'_id': ObjectId(station_id)},
-            'update': {'$set': station_data},
+            'filter': {
+                '_id': ObjectId(station_id),
+                'account_id': user.id,
+            },
+            'update': {
+                '$set': station_data
+            },
             'return_document': True
         }
         return await self._station_collection.find_one_and_update(**attrs)
 
-    async def delete_station(self, station_id: str):
+    async def delete_station(self, user, station_id: str):
         station = await self._get_station(station_id=station_id)
         result = await self._station_collection.delete_one(
-            filter={'_id': ObjectId(station['_id'])})
+            filter={
+                '_id': ObjectId(station['_id']),
+                'account_id': user.id
+            }
+        )
         return False if not result.deleted_count else True

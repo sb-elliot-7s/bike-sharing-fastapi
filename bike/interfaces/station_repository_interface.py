@@ -5,8 +5,9 @@ class StationRepositoryInterface(ABC):
 
     @abstractmethod
     async def create_station(
-            self, station_name: str, maximum_number_of_bicycles: int,
-            address: dict):
+            self, user, station_name: str, maximum_number_of_bicycles: int,
+            address: dict
+    ):
         pass
 
     @abstractmethod
@@ -16,8 +17,10 @@ class StationRepositoryInterface(ABC):
     async def get_detail_station(self, station_id: str): pass
 
     @abstractmethod
-    async def update_station_info(self, station_id: str, station_data: dict):
+    async def update_station_info(
+            self, user, station_id: str, station_data: dict
+    ):
         pass
 
     @abstractmethod
-    async def delete_station(self, station_id: str): pass
+    async def delete_station(self, user, station_id: str): pass

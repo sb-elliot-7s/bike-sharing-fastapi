@@ -13,10 +13,13 @@ class BikeStationRepository(
 ):
     @staticmethod
     async def __create_bikes_and_return_ids(
-            bike_coll, bikes: list[CreateBikeSchema]
+            user_id: str, bike_coll, bikes: list[CreateBikeSchema]
     ):
-        data = [dict(doc.dict(exclude_none=True),
-                     created=datetime.datetime.utcnow()) for doc in bikes]
+        data = [
+            dict(doc.dict(exclude_none=True),
+                 created=datetime.datetime.utcnow(),
+                 account_id=user_id) for doc in bikes
+        ]
         result = await bike_coll.insert_many(data)
         return result.inserted_ids
 
@@ -80,24 +83,31 @@ class BikeStationRepository(
             raise HTTPException(**response_exceptions.get('bike_not_found'))
         return bike
 
-    async def create_and_return_bike(self, bike_coll, bike_serial: str,
-                                     brand: str, color: Optional[str],
-                                     model: str, rent_price: Optional[float],
-                                     station_id: str,
-                                     bike_manufacturer: Optional[str],
-                                     description: Optional[str]):
+    async def create_and_return_bike(
+            self, user_id: str, bike_coll, bike_serial: str,
+            brand: str, color: Optional[str],
+            model: str, rent_price: Optional[float],
+            station_id: str,
+            bike_manufacturer: Optional[str],
+            description: Optional[str]
+    ):
         document = await self.prepare_document(
             bike_manufacturer=bike_manufacturer, bike_serial=bike_serial,
             brand=brand, color=color,
             description=description, model=model, rent_price=rent_price,
             station_id=station_id)
+        document.update({'account_id': user_id})
         result = await bike_coll.insert_one(document=document)
-        return await self.get_detail_bike(bike_id=result.inserted_id,
-                                          bike_coll=bike_coll)
+        return await self.get_detail_bike(
+            bike_id=result.inserted_id, bike_coll=bike_coll
+        )
 
-    async def get_bikes(self, bike_coll, bikes: list[CreateBikeSchema]):
-        ids = await self.__create_bikes_and_return_ids(bike_coll=bike_coll,
-                                                       bikes=bikes)
+    async def get_bikes(
+            self, user_id: str, bike_coll, bikes: list[CreateBikeSchema]
+    ):
+        ids = await self.__create_bikes_and_return_ids(
+            bike_coll=bike_coll, bikes=bikes, user_id=user_id
+        )
         return [
             await self.get_detail_bike(bike_id=bike_id, bike_coll=bike_coll)
             for bike_id in ids

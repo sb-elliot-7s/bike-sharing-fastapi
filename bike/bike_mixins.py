@@ -33,10 +33,16 @@ class BikePrepareDocumentMixin:
         }
 
     @staticmethod
-    async def get_update_info_bike_data(bike_data: dict, bike_id: str):
+    async def get_update_info_bike_data(
+            user_id: str, bike_data: dict, bike_id: str
+    ):
         return {
-            'filter': {'_id': ObjectId(bike_id)},
-            'update': {'$set': bike_data},
+            'filter': {
+                '_id': ObjectId(bike_id), 'account_id': user_id
+            },
+            'update': {
+                '$set': bike_data
+            },
             'return_document': True
         }
 

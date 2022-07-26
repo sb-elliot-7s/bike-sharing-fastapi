@@ -33,6 +33,7 @@ class CreateBikeSchema(UpdateBikeSchema):
 
 class BikeSchema(CreateBikeSchema):
     id: ObjID = Field(alias='_id')
+    account_id: str
     created: datetime
     updated: Optional[datetime]
 
@@ -56,6 +57,7 @@ class UpdateStationSchema(BaseModel):
 
 class StationSchema(CreateStationSchema):
     id: ObjID = Field(alias='_id')
+    account_id: str
     bicycles: list[BikeSchema]
     available_count_of_bicycles: int
     time_created: datetime

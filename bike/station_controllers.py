@@ -16,10 +16,9 @@ async def create_station(station_data: CreateStationSchema,
                              Permission(token_service=TokenService())
                              .get_admin_user)):
     return await StationService(**services) \
-        .create_station(station_data=station_data)
+        .create_station(station_data=station_data, user=admin_user)
 
 
-# find all stations in the city
 @station_router.get('/', **station_response_data.get('show_all_stations'))
 async def show_all_stations_in_the_city(
         city: str, services=Depends(get_station_service)
@@ -27,7 +26,6 @@ async def show_all_stations_in_the_city(
     return await StationService(**services).show_stations(city=city)
 
 
-# show specific station
 @station_router.get('/{station_id}',
                     **station_response_data.get('detail_station'))
 async def get_detail_station(
@@ -45,8 +43,9 @@ async def update_station_info(station_id: str,
                               admin_user=Depends(
                                   Permission(token_service=TokenService())
                                   .get_admin_user)):
-    return await StationService(**services) \
-        .update_station_info(station_id=station_id, station_data=station_data)
+    return await StationService(**services).update_station_info(
+        station_id=station_id, station_data=station_data, user=admin_user
+    )
 
 
 @station_router.delete('/{station_id}',
@@ -56,7 +55,7 @@ async def delete_station(station_id: str, services=Depends(get_station_service),
                              Permission(token_service=TokenService())
                              .get_admin_user)):
     if not (_ := await StationService(**services).delete_station(
-            station_id=station_id)):
+            station_id=station_id, user=admin_user)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Station not deleted')
     return responses.JSONResponse({'detail': 'Station has been deleted'})
