@@ -15,10 +15,17 @@ class PaymentService(PaymentServiceInterface):
         Configuration.account_id = get_configs().you_kassa_account_id
         Configuration.secret_key = get_configs().you_kassa_secret_key
 
-    async def create_payment(self, payment_collection, user, payment_data: PaymentDataSchema):
-        payment_object = await CreatePaymentObject() \
-            .get_payment_object(email=user.email, phone=user.phone, payment_data=payment_data)
-        payment: PaymentResponse = Payment.create(payment_object, str(uuid.uuid4()))
+    async def create_payment(
+            self, payment_collection, user, payment_data: PaymentDataSchema
+    ):
+        payment_object = await CreatePaymentObject().get_payment_object(
+            email=user.email,
+            phone=user.phone,
+            payment_data=payment_data
+        )
+        payment: PaymentResponse = Payment.create(
+            payment_object, str(uuid.uuid4())
+        )
         document = {
             'user_id': user.id,
             'youkassa_payment_id': payment.id,

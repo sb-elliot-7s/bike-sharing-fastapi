@@ -9,13 +9,16 @@ from bike.schemas import BikeSchema
 class BikeRepositoryMixin:
     @staticmethod
     def get_updated_data(station_id: str, _updated_filter: dict):
-        return {'filter': {'_id': ObjectId(station_id)}, 'update': _updated_filter}
+        return {'filter': {'_id': ObjectId(station_id)},
+                'update': _updated_filter}
 
 
 class BikePrepareDocumentMixin:
     @staticmethod
-    async def prepare_document(bike_serial: str, brand: str, color: str, model: str, station_id: str,
-                               rent_price: Optional[float], bike_manufacturer: Optional[str] = None,
+    async def prepare_document(bike_serial: str, brand: str, color: str,
+                               model: str, station_id: str,
+                               rent_price: Optional[float],
+                               bike_manufacturer: Optional[str] = None,
                                description: Optional[str] = None):
         return {
             'bike_serial': bike_serial,
@@ -31,10 +34,15 @@ class BikePrepareDocumentMixin:
 
     @staticmethod
     async def get_update_info_bike_data(bike_data: dict, bike_id: str):
-        return {'filter': {'_id': ObjectId(bike_id)}, 'update': {'$set': bike_data}, 'return_document': True}
+        return {
+            'filter': {'_id': ObjectId(bike_id)},
+            'update': {'$set': bike_data},
+            'return_document': True
+        }
 
     @staticmethod
-    async def get_response_data(max_count, available_count_of_bicycles, add_count_of_bikes, count, bikes):
+    async def get_response_data(max_count, available_count_of_bicycles,
+                                add_count_of_bikes, count, bikes):
         return {
             'max_count': max_count,
             'available_count': available_count_of_bicycles,

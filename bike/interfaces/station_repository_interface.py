@@ -4,14 +4,13 @@ from abc import ABC, abstractmethod
 class StationRepositoryInterface(ABC):
 
     @abstractmethod
-    async def create_station(self, station_name: str,
-                             maximum_number_of_bicycles: int, address: dict): pass
+    async def create_station(
+            self, station_name: str, maximum_number_of_bicycles: int,
+            address: dict):
+        pass
 
     @abstractmethod
     async def show_stations(self, city: str): pass
-
-    # @abstractmethod
-    # async def find_nearest_station(self, ): pass
 
     @abstractmethod
     async def get_detail_station(self, station_id: str): pass

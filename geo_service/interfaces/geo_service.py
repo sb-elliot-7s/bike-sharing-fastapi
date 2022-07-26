@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 
 class GeoServiceInterface(ABC):
     @abstractmethod
-    async def get_longitude_and_latitude(self, country: str, city: str,
-                                         street: str, house: str):
+    async def get_longitude_and_latitude(
+            self, country: str, city: str, street: str, house: str):
         pass
 
     @abstractmethod

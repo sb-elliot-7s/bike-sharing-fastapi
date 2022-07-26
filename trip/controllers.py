@@ -22,22 +22,25 @@ async def get_trip_services(trip_collection=Depends(get_trip_collection),
     }
 
 
-@trip_router.get('/{trip_id}', status_code=status.HTTP_200_OK, response_model=TripSchema,
-                 response_model_by_alias=False)
+@trip_router.get('/{trip_id}', status_code=status.HTTP_200_OK,
+                 response_model=TripSchema, response_model_by_alias=False)
 async def get_trip(trip_id: str, services=Depends(get_trip_services),
                    user=Depends(Permission(token_service=TokenService()))):
-    return await TripService(**services).get_trip(trip_id=trip_id, user_id=user.id)
+    return await TripService(**services) \
+        .get_trip(trip_id=trip_id, user_id=user.id)
 
 
 @trip_router.post('/start/{bike_id}', status_code=status.HTTP_201_CREATED)
 async def create_trip(bike_id: str, services=Depends(get_trip_services),
                       user=Depends(Permission(token_service=TokenService()))):
     await TripService(**services) \
-        .create_trip(user_id=user.id, bike_id=bike_id, weather_service=WeatherNetworkService())
+        .create_trip(user_id=user.id, bike_id=bike_id,
+                     weather_service=WeatherNetworkService())
 
 
 @trip_router.post('/finish/{station_id}')
 async def finish_trip(station_id: str, services=Depends(get_trip_services),
                       user=Depends(Permission(token_service=TokenService()))):
     await TripService(**services) \
-        .finish_trip(station_id=station_id, user_id=user.id, weather_service=WeatherNetworkService())
+        .finish_trip(station_id=station_id, user_id=user.id,
+                     weather_service=WeatherNetworkService())

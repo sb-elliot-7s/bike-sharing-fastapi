@@ -29,7 +29,8 @@ class FilterPaymentDataSchema(BaseModel):
 
     @staticmethod
     def _transform_key(_key: str):
-        return _key[::-1].replace('_', '.', 1)[::-1] if _key.count('_') == 2 else _key
+        return _key[::-1].replace('_', '.', 1)[::-1] if _key.count('_') == 2 \
+            else _key
 
     @property
     def prepare_filter(self):

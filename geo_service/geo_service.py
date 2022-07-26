@@ -5,7 +5,9 @@ from geopy.adapters import AioHTTPAdapter
 
 class GeoService(GeoServiceInterface):
     def __init__(self):
-        self._nominatim = Nominatim(user_agent='bike', adapter_factory=AioHTTPAdapter)
+        self._nominatim = Nominatim(
+            user_agent='bike', adapter_factory=AioHTTPAdapter
+        )
 
     async def get_longitude_and_latitude(self, country: str, city: str,
                                          street: str, house: str):

@@ -12,16 +12,23 @@ class StationRepository(StationRepositoryInterface):
         self._station_collection = station_collection
 
     async def _get_station(self, station_id: str):
-        if not (station := await self._station_collection.find_one(filter={'_id': ObjectId(station_id)})):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Station not found')
+        if not (station := await self._station_collection.find_one(
+                filter={'_id': ObjectId(station_id)})):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Station not found'
+            )
         return station
 
     @staticmethod
-    async def _get_address_lat_lng(country: str, city: str, street: str, house: str):
+    async def _get_address_lat_lng(country: str, city: str, street: str,
+                                   house: str):
         return await GeoService() \
-            .get_longitude_and_latitude(country=country, city=city, street=street, house=house)
+            .get_longitude_and_latitude(country=country, city=city,
+                                        street=street, house=house)
 
-    async def create_station(self, station_name: str, maximum_number_of_bicycles: int, address: dict):
+    async def create_station(self, station_name: str,
+                             maximum_number_of_bicycles: int, address: dict):
         lat, lng = await self._get_address_lat_lng(**address)
         document = {
             'station_name': station_name,
@@ -38,8 +45,6 @@ class StationRepository(StationRepositoryInterface):
         cursor = self._station_collection.find(filter={'address.city': city})
         return [station async for station in cursor]
 
-    # async def find_nearest_station(self): pass
-
     async def get_detail_station(self, station_id: str):
         return await self._get_station(station_id=station_id)
 
@@ -48,8 +53,10 @@ class StationRepository(StationRepositoryInterface):
             station_data.update({'available_count_of_bicycles': max_num})
         station_data.update({'time_updated': datetime.datetime.utcnow()})
 
-        if 'address' in station_data and (address := station_data.pop('address')):
-            station_data.update({f'address.{key}': value for key, value in address.items()})
+        if 'address' in station_data and (
+                address := station_data.pop('address')):
+            station_data.update(
+                {f'address.{key}': value for key, value in address.items()})
         attrs = {
             'filter': {'_id': ObjectId(station_id)},
             'update': {'$set': station_data},
@@ -59,5 +66,6 @@ class StationRepository(StationRepositoryInterface):
 
     async def delete_station(self, station_id: str):
         station = await self._get_station(station_id=station_id)
-        result = await self._station_collection.delete_one(filter={'_id': ObjectId(station['_id'])})
+        result = await self._station_collection.delete_one(
+            filter={'_id': ObjectId(station['_id'])})
         return False if not result.deleted_count else True

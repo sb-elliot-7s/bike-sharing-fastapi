@@ -12,15 +12,15 @@ class StationService:
     async def get_detail_station(self, station_id: str):
         return await self._repository.get_detail_station(station_id=station_id)
 
-    async def show_stations(self, city: str): return await self._repository.show_stations(city=city)
+    async def show_stations(self, city: str):
+        return await self._repository.show_stations(city=city)
 
-    async def update_station_info(self, station_id: str, station_data: UpdateStationSchema):
-        return await self._repository \
-            .update_station_info(station_id=station_id,
-                                 station_data=station_data.dict(exclude_none=True))
+    async def update_station_info(self, station_id: str,
+                                  station_data: UpdateStationSchema):
+        return await self._repository.update_station_info(
+            station_id=station_id,
+            station_data=station_data.dict(exclude_none=True)
+        )
 
     async def delete_station(self, station_id: str):
         return await self._repository.delete_station(station_id=station_id)
-
-    # async def find_nearest_station(self):
-    #     return await self.find_nearest_station()

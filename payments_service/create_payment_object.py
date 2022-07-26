@@ -5,9 +5,10 @@ from payments_service.schemas import PaymentDataSchema
 
 
 class CreatePaymentObject:
+
     @staticmethod
     async def get_payment_object(email: Optional[str], phone: Optional[str],
-                                  payment_data: PaymentDataSchema):
+                                 payment_data: PaymentDataSchema):
         return {
             'amount': {
                 'value': str(payment_data.amount),

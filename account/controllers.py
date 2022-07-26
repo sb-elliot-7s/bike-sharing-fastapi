@@ -19,11 +19,15 @@ response_data = {
 
 
 @account_router.post('/registration', **response_data.get('registration'))
-async def registration(user_data: CreateAccountSchema, service_data=Depends(get_account_service)):
-    return await AccountService(**service_data).registration(user_data=user_data)
+async def registration(
+        user_data: CreateAccountSchema,
+        service_data=Depends(get_account_service)):
+    return await AccountService(**service_data) \
+        .registration(user_data=user_data)
 
 
 @account_router.post('/login', **response_data.get('login'))
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), service_data=Depends(get_account_service)):
+async def login(form_data: OAuth2PasswordRequestForm = Depends(),
+                service_data=Depends(get_account_service)):
     return await AccountService(**service_data) \
         .login(username=form_data.username, password=form_data.password)

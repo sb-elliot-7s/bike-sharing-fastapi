@@ -4,7 +4,9 @@ from ..schemas import PaymentDataSchema
 
 class PaymentServiceInterface(ABC):
     @abstractmethod
-    async def create_payment(self, payment_collection, user, payment_data: PaymentDataSchema):
+    async def create_payment(
+            self, payment_collection, user, payment_data: PaymentDataSchema
+    ):
         pass
 
     @staticmethod

@@ -11,25 +11,41 @@ class BikeRepository(BikeStationRepository, BikeRepositoryInterface):
         self._bike_collection = bike_collection
 
     async def get_bike(self, bike_id: str):
-        return await self.get_detail_bike(bike_id=bike_id, bike_coll=self._bike_collection)
+        return await self.get_detail_bike(
+            bike_id=bike_id, bike_coll=self._bike_collection
+        )
 
     async def update_info_bike(self, bike_id: str, update_bike_data: dict):
-        data = await self.get_update_info_bike_data(bike_data=update_bike_data, bike_id=bike_id)
+        data = await self.get_update_info_bike_data(
+            bike_data=update_bike_data, bike_id=bike_id
+        )
         return await self._bike_collection.find_one_and_update(**data)
 
     async def delete_bike(self, bike_id: str):
-        bike = await self.get_detail_bike(bike_id=bike_id, bike_coll=self._bike_collection)
-        result = await self._bike_collection.delete_one(filter={'_id': ObjectId(bike['_id'])})
+        bike = await self.get_detail_bike(
+            bike_id=bike_id, bike_coll=self._bike_collection
+        )
+        result = await self._bike_collection.delete_one(
+            filter={'_id': ObjectId(bike['_id'])}
+        )
         return False if not result.deleted_count else True
 
     async def create_bike(self, bike_data: CreateBikeSchema):
-        bike = await self.create_and_return_bike(bike_coll=self._bike_collection,
-                                                 **bike_data.dict(exclude_none=True))
+        bike = await self.create_and_return_bike(
+            bike_coll=self._bike_collection,
+            **bike_data.dict(exclude_none=True))
         return bike if await self.check_count_of_bikes_and_update_station(
             station_id=bike_data.station_id, bike_count=1, bike=bike,
             station_coll=self._station_collection) else False
 
-    async def add_many_bikes_for_station(self, station_id: str, _bikes: list[CreateBikeSchema]):
-        bikes = await self.get_bikes(bike_coll=self._bike_collection, bikes=_bikes)
+    async def add_many_bikes_for_station(
+            self, station_id: str, _bikes: list[CreateBikeSchema]
+    ):
+        bikes = await self.get_bikes(
+            bike_coll=self._bike_collection, bikes=_bikes
+        )
         return await self.response_data_station(
-            station_id=station_id, bikes=bikes, station_coll=self._station_collection)
+            station_id=station_id,
+            bikes=bikes,
+            station_coll=self._station_collection
+        )
